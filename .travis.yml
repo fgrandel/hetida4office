@@ -1,4 +1,5 @@
 os: linux
+dist: trusty
 
 language: java
 jdk: 
@@ -7,15 +8,10 @@ jdk:
 services:
   - docker
 
-env:
-  global:
-  - secure: "$DOCKER_HUB_USER_NAME"
-  - secure: "$DOCKER_HUB_PASSWORD"
-
 before_install:
   - chmod +x ./.travis/docker-build-and-push.sh
 
-script: cd core && mvn clean package
+script: cd ./core && mvn clean package
 
 after_success: 
-  - bash ../.travis/docker-build-and-push.sh
+  - bash ./.travis/docker-build-and-push.sh

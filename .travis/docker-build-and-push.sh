@@ -10,5 +10,5 @@ docker build -f ../Dockerfile.h4o.kafka.consumer -t h4o/kafka-consumer:latest .
 docker tag h4o/connector-mqtt:$COMMIT h4o/connector-mqtt:latest
 docker tag h4o/kafka-consumer:$COMMIT h4o/kafka-consumer:latest
 
-docker h4o/connector-mqtt
+docker push h4o/connector-mqtt
 docker push h4o/kafka-consumer
