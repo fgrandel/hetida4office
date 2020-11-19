@@ -4,11 +4,11 @@ echo "build and push h4o images to docker hub..."
 
 echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER_NAME" --password-stdin
 
-docker build -f ../Dockerfile.h4o.connector.mqtt -t h4o/connector-mqtt:latest .
-docker build -f ../Dockerfile.h4o.kafka.consumer -t h4o/kafka-consumer:latest .
+IMAGE_H4O_CONNECT_MQTT=hetida4office/connector-mqtt
+IMAGE_H4O_KAFKA_CONSUMER=hetida4office/kafka-consumer
 
-docker tag h4o/connector-mqtt:$COMMIT h4o/connector-mqtt:latest
-docker tag h4o/kafka-consumer:$COMMIT h4o/kafka-consumer:latest
+docker build -f ./Dockerfile.h4o.connector.mqtt -t $IMAGE_H4O_CONNECT_MQTT:latest .
+docker build -f ./Dockerfile.h4o.kafka.consumer -t $IMAGE_H4O_KAFKA_CONSUMER:latest .
 
-docker push h4o/connector-mqtt
-docker push h4o/kafka-consumer
+docker push $IMAGE_H4O_CONNECT_MQTT:latest
+docker push $IMAGE_H4O_KAFKA_CONSUMER:latest
