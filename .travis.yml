@@ -14,4 +14,4 @@ before_install:
 script: cd ./core && mvn clean package
 
 after_success: 
-  - bash ./.travis/docker-build-and-push.sh
+  - bash ../.travis/docker-build-and-push.sh
