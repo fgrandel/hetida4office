@@ -4,7 +4,7 @@
 	 <parent>
         <artifactId>h4o</artifactId>
         <groupId>de.neustasdwest.h4o</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>

@@ -10,11 +10,10 @@ import java.util.List;
 
 @Component
 @Qualifier("timeScaleDbKafkaGateway")
-@Slf4j
 public class TimeScaleDbKafkaGateway implements TimeScaleDbGateway {
-    private final KafkaProducer kafkaProducer;
+    private final H4OKafkaProducer kafkaProducer;
 
-    public TimeScaleDbKafkaGateway(final KafkaProducer kafkaProducer) {
+    public TimeScaleDbKafkaGateway(final H4OKafkaProducer kafkaProducer) {
         this.kafkaProducer = kafkaProducer;
     }
 

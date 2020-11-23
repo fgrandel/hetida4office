@@ -2,6 +2,8 @@ version: '3'
 services:
     timescale:
         image: timescale/timescaledb:latest-pg12
+        hostname: timescale
+        container_name: timescaledb
         volumes:
             - timescale_data:/var/lib/postgresql/data
             # - ./timescale/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -18,26 +20,27 @@ services:
                 max-file: "10"
     hivemq-ce:
         image: hivemq/hivemq-ce
+        hostname: hivemq-ce
+        container_name: hivemq
         ports:
             - "1883:1883"
     zookeeper:
-        image: wurstmeister/zookeeper
+        image: confluentinc/cp-zookeeper
+        restart: unless-stopped
         hostname: zookeeper
+        container_name: zookeeper
         ports:
-            - "2181:2181"
-        logging:
-            driver: "json-file"
-            options:
-                max-size: "200k"
-                max-file: "10"
+        - 2181:2181
         environment:
-            ZOO_MY_ID: 1
+            ZOOKEEPER_CLIENT_PORT: 2181
         volumes:
             - ./data/zookeeper/data:/data
             - ./data/zookeeper/datalog:/datalog
         restart: unless-stopped
     kafka:
-        image: wurstmeister/kafka
+        image: confluentinc/cp-kafka
+        hostname: kafka
+        container_name: kafka
         ports:
             - "9092:9092"
         volumes:
@@ -49,6 +52,7 @@ services:
             KAFKA_LISTENERS: PLAINTEXT://kafka:29092, PLAINTEXT_LOCALHOST://0.0.0.0:9092
             KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_LOCALHOST:PLAINTEXT
             KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
         logging:
             driver: "json-file"
             options:
@@ -58,6 +62,8 @@ services:
             - zookeeper
         restart: unless-stopped
     connector-mqtt:
+        hostname: connector-mqtt
+        container_name: h4o-connector-mqtt
         build:
             context: ../
             dockerfile: Dockerfile.h4o.connector.mqtt
@@ -70,6 +76,8 @@ services:
            - zookeeper
            - kafka
     h4o-kafka-consumer:
+        hostname: h4o-kafka-consumer
+        container_name: h4o-kafka-consumer
         build:
             context: ../
             dockerfile: Dockerfile.h4o.kafka.consumer
@@ -81,6 +89,8 @@ services:
            - timescale
            - kafka   
     mqtt-test-sensors-client:
+        hostname: mqtt-test-sensors-client
+        container_name: h4o-fake-sensors
         build:
             context: ../
             dockerfile: Dockerfile.h4o.mqtt.test.sensors.client
@@ -92,6 +102,8 @@ services:
            - hivemq-ce
     grafana:
         image: grafana/grafana:latest
+        hostname: grafana
+        container_name: grafana
         ports:
             - 3000:3000
 volumes:

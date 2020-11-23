@@ -15,7 +15,7 @@ import lombok.extern.log4j.Log4j2;
 public class H4OMqttPublisherClientRunner {
     private final H4OMqttPublisherClient h4oMqttPublisherClient;
     private final H4OTopicNamesBuilder h4oTopicNamesBuilder;
-    private final PublisherTask publisherTask;
+    private final Runnable publisherTask;
 
     public H4OMqttPublisherClientRunner(final H4OMqttPublisherClient h4oMqttPublisherClient,
             final H4OTopicNamesBuilder h4oTopicNamesBuilder) {

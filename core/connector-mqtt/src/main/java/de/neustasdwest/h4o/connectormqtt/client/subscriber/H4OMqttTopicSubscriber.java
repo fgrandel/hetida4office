@@ -16,16 +16,14 @@ import java.util.Random;
 
 @Log4j2
 public class H4OMqttTopicSubscriber {
-    private final H4OSingletonMqttClient mqtt5Client;
     private final String topicName;
 
-    public H4OMqttTopicSubscriber(final H4OSingletonMqttClient client, final String topicName) {
-        mqtt5Client = client;
+    public H4OMqttTopicSubscriber(final String topicName) {
         this.topicName = topicName;
     }
 
     public void subscribeToTopic(final TimeScaleDbGateway h4WGateway) {
-        mqtt5Client.getInstance().toAsync().subscribeWith()
+        H4OSingletonMqttClient.getInstance().toAsync().subscribeWith()
                 .topicFilter(topicName)
                 .qos(MqttQos.EXACTLY_ONCE)
                 .callback(mqtt5Publish -> {

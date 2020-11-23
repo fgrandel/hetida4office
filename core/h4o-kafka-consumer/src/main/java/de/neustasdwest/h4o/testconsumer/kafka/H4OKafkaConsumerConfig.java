@@ -19,7 +19,7 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
-public class KafkaConfig {
+public class H4OKafkaConsumerConfig {
     @Value("${kafka.broker.host}")
     private String kafkaUrl;
 

@@ -32,7 +32,7 @@ public class H4OMqttTopicSubsHelper {
     public void startListening() {
         h4OSingletonMqttClient.connect();
         topicNamesBuilder.buildTopicNames().forEach(topicName -> {
-            final H4OMqttTopicSubscriber topicSubscriber = new H4OMqttTopicSubscriber(h4OSingletonMqttClient, topicName);
+            final H4OMqttTopicSubscriber topicSubscriber = new H4OMqttTopicSubscriber(topicName);
             h4oMqttTopicSubscribers.put(topicName, topicSubscriber);
             log.info("Added new topic subscriber with name -> {}",topicName);
             h4oMqttTopicSubscribers.get(topicName).subscribeToTopic(timeScaleDbGateway);

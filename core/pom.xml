@@ -3,7 +3,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -13,7 +12,7 @@
     <groupId>de.neustasdwest.h4o</groupId>
     <artifactId>h4o</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.0.1-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.release>11</maven.compiler.release>
@@ -36,6 +35,7 @@
         <hivemq.mqtt.client.version>1.2.1</hivemq.mqtt.client.version>
         <postgresql.version>42.2.18</postgresql.version>
         <flyway.core.version>6.5.7</flyway.core.version>
+        <camel.kafka.starter.version>2.25.2</camel.kafka.starter.version>
     </properties>
 
     <!-- Don't use modules for docker build mechanism => Reactor error message during maven build inside build image -->

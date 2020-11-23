@@ -16,11 +16,13 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
-class KafkaConfig {
+class H4OKafkaProducerConfig {
     public static final int BATCH_SIZE = 32 * 1024;
 
     @Value("${kafka.broker.host}")
     private String kafkaUrl;
+    @Value("${kafka.broker.port}")
+    private String kafkaPort;
 
     @Bean
     Map<String, Object> producerConfigs() {

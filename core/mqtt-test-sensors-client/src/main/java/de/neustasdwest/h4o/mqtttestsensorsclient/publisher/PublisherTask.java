@@ -7,7 +7,6 @@ import java.util.Set;
 
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 
-import de.neustasdwest.h4o.mqtttestsensorsclient.client.H4OMqttPublisherClient;
 import de.neustasdwest.h4o.mqtttestsensorsclient.client.H4OMqttPublisherClientImpl;
 import lombok.extern.log4j.Log4j2;
 

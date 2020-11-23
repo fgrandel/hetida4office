@@ -33,7 +33,7 @@ public class H4OSingletonMqttClient {
                     .buildAsync();
         }
     }
-    public Mqtt5AsyncClient getInstance() {
+    public static Mqtt5AsyncClient getInstance() {
         return client;
     }
 
