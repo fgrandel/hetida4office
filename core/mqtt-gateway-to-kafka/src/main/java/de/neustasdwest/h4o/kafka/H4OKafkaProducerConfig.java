@@ -20,12 +20,15 @@ class H4OKafkaProducerConfig {
     public static final int BATCH_SIZE = 32 * 1024;
 
     @Value("${kafka.broker.host}")
-    private String kafkaUrl;
+    private String kafkaHost;
     @Value("${kafka.broker.port}")
     private String kafkaPort;
 
     @Bean
     Map<String, Object> producerConfigs() {
+        final StringBuilder stringBuilder = new StringBuilder();
+        final String kafkaUrl = stringBuilder.append(kafkaHost).append(":").append(kafkaPort).toString();
+        
         final Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);

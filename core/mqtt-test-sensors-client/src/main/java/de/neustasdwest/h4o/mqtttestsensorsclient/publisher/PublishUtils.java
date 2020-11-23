@@ -2,7 +2,7 @@ package de.neustasdwest.h4o.mqtttestsensorsclient.publisher;
 
 import java.util.Random;
 
-public class PublishHelperUtils {
+public class PublishUtils {
     private static final Random r = new Random();
 
     private static int getRandomNumber(int low, int high) {
@@ -13,7 +13,7 @@ public class PublishHelperUtils {
         return getRandomNumber(1000, 2500);
     }
 
-    public static int getFakeCO2Measurement() {
-        return getRandomNumber(100, 3500);
+    public static int getRandomMeasurement() {
+        return getRandomNumber(10, 5500);
     }
 }

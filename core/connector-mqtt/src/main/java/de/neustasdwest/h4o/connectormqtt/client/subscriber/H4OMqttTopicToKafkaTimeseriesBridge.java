@@ -15,16 +15,14 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Log4j2
 public class H4OMqttTopicToKafkaTimeseriesBridge {
-    private final H4OSingletonMqttClient mqtt5Client;
     private final String topicName;
 
-    public H4OMqttTopicToKafkaTimeseriesBridge(final H4OSingletonMqttClient client, final String topicName) {
-        mqtt5Client = client;
+    public H4OMqttTopicToKafkaTimeseriesBridge(final String topicName) {
         this.topicName = topicName;
     }
 
     public void forwardMqttTo(final H4OKafkaTimeseriesTopic h4oKafkaTimeseriesTopic) {
-        mqtt5Client.getInstance().toAsync().subscribeWith()
+        H4OSingletonMqttClient.getInstance().toAsync().subscribeWith()
                 .topicFilter(topicName)
                 .qos(MqttQos.EXACTLY_ONCE)
                 .callback(mqtt5Publish -> {

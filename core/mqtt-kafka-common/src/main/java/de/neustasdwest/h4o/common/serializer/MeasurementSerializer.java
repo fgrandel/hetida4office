@@ -1,4 +1,4 @@
-package de.neustasdwest.h4o.common;
+package de.neustasdwest.h4o.common.serializer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

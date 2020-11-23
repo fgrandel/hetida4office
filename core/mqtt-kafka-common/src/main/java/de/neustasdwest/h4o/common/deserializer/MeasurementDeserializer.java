@@ -1,4 +1,4 @@
-package de.neustasdwest.h4o.common;
+package de.neustasdwest.h4o.common.deserializer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

@@ -2,7 +2,7 @@ version: '3'
 services:
     timescaledb:
         image: timescale/timescaledb:latest-pg12
-        hostname: timescale
+        hostname: timescaledb
         container_name: timescaledb
         volumes:
             - timescaledb_data:/var/lib/postgresql/data

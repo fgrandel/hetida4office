@@ -1,6 +1,6 @@
 package de.neustasdwest.h4o.testconsumer.kafka;
 
-import static de.neustasdwest.h4o.common.MeasurementDeserializer.deserializeMeasurement;
+import static de.neustasdwest.h4o.common.deserializer.MeasurementDeserializer.deserializeMeasurement;
 import static java.util.Collections.singletonList;
 
 import java.io.IOException;

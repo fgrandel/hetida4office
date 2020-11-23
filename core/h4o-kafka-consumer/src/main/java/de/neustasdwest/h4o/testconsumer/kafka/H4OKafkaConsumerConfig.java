@@ -21,7 +21,9 @@ import java.util.Map;
 @EnableKafka
 public class H4OKafkaConsumerConfig {
     @Value("${kafka.broker.host}")
-    private String kafkaUrl;
+    private String kafkaHost;
+    @Value("${kafka.broker.port}")
+    private String kafkaPort;
 
     @Value("${kafka.consumergroup}")
     private String consumerGroup;
@@ -44,6 +46,8 @@ public class H4OKafkaConsumerConfig {
 
     @Bean
     public Map<String, Object> consumerConfigs() {
+        final StringBuilder stringBuilder = new StringBuilder();
+        final String kafkaUrl = stringBuilder.append(kafkaHost).append(":").append(kafkaPort).toString();
         final Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaUrl);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroup);

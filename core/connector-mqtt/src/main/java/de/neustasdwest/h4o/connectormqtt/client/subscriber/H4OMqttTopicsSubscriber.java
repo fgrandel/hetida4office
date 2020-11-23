@@ -32,7 +32,7 @@ public class H4OMqttTopicsSubscriber {
     public void startListening() {
         h4oSingletonMqttClient.connect();
         topicNamesBuilder.buildTopicNames().forEach(topicName -> {
-            final H4OMqttTopicToKafkaTimeseriesBridge h4oMqttTopicToKafkaTimeseriesBridge = new H4OMqttTopicToKafkaTimeseriesBridge(h4oSingletonMqttClient, topicName);
+            final H4OMqttTopicToKafkaTimeseriesBridge h4oMqttTopicToKafkaTimeseriesBridge = new H4OMqttTopicToKafkaTimeseriesBridge(topicName);
             h4oMqttTopicToKafkaTimeseriesBridges.put(topicName, h4oMqttTopicToKafkaTimeseriesBridge);
             log.info("Added new topic subscriber with name -> {}",topicName);
             h4oMqttTopicToKafkaTimeseriesBridges.get(topicName).forwardMqttTo(h4oKafkaTimeseriesTopic);
