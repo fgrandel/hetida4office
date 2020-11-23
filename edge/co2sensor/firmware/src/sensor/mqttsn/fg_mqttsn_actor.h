@@ -16,6 +16,7 @@ typedef enum
     FG_MQTT_TOPIC_TEMPERATURE,
     FG_MQTT_TOPIC_HUMIDITY,
     FG_MQTT_TOPIC_CO2,
+    FG_MQTT_TOPIC_STATUS,
     FG_MQTT_TOPIC_NUM
 } fg_mqttsn_topic_t;
 

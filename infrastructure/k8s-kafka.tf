@@ -58,31 +58,24 @@ resource "kubernetes_pod" "kafka" {
         container_port = 9092
       }
       env {
-        name = "KAFKA_ADVERTISED_HOST_NAME"
-        value = "localhost"
-      }
-      env {
         name = "KAFKA_ZOOKEEPER_CONNECT"
         value = "hetida4office-zookeeper.hetida4office.svc.cluster.local:2181"
       }
-      volume_mount {
-        name = "zookeeper-data"
-        mount_path = "/data"
-        sub_path = "zookeeper/data"
+      env {
+        name = "KAFKA_ADVERTISED_LISTENERS"
+        value = "PLAINTEXT://hetida4office-kafka.hetida4office.svc.cluster.local:9092,PLAINTEXT_LOCAL://localhost:9093"
       }
-      volume_mount {
-        name = "zookeeper-data"
-        mount_path = "/datalog"
-        sub_path = "zookeeper/datalog"
+      env {
+        name = "KAFKA_LISTENERS"
+        value = "PLAINTEXT://0.0.0.0:9092,PLAINTEXT_LOCAL://localhost:9093"
       }
-    }
-    volume {
-      name = "zookeeper-data"
-      azure_disk {
-          caching_mode = "None"
-          kind = "Managed"
-          disk_name = "hetida4office"
-          data_disk_uri = azurerm_managed_disk.h4o.id
+      env {
+        name = "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP"
+        value = "PLAINTEXT:PLAINTEXT,PLAINTEXT_LOCAL:PLAINTEXT"
+      }
+      env {
+        name = "KAFKA_INTER_BROKER_LISTENER_NAME"
+        value = "PLAINTEXT"
       }
     }
   }

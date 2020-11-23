@@ -170,14 +170,15 @@ static bool handle_finished_actions(void)
         if (p_sub_action->type == FG_ACTOR_ACTION_TYPE_TASK)
         {
             // Handle the result of finished tasks (which may
-            // add results to the corresponding transactions, so
+            // add results to the sub action or trigger
+            // a follow-up task in the transaction, so
             // we need to do this before we check whether the
             // corresponding transaction is now done).
             task_callback = p_sub_action->task.callback;
             ASSERT(task_callback)
             p_calling_action = p_transaction->p_calling_action;
             ASSERT(p_calling_action)
-            task_callback(p_calling_action, p_sub_action);
+            task_callback(p_transaction, p_calling_action, p_sub_action);
         }
 
         // The action can now be safely considered "done".
@@ -286,38 +287,41 @@ static void fg_actor_queue_or_free_transaction(const fg_actor_action_t * const p
 }
 
 // May be called from interrupt context.
+// Obs: No need for a critical region here as each task corresponds
+// exclusively to one IRQ handler, i.e. one IRQ priority, and therefore
+// cannot be interrupted again for the same task.
+// There's also no need to synchronize with adtor or transaction state
+// as both will only be updated from main context which always runs at
+// lower or same priority as this function.
 void fg_actor_task_finished_internal(
     const fg_actor_t * const p_actor, const uint32_t task_instance_id)
 {
-    fg_actor_action_t * const p_action =
+    fg_actor_action_t * const p_task =
         fg_actor_get_running_task_internal(p_actor, task_instance_id);
     p_actor->running_tasks[task_instance_id] = NULL;
 
-    const fg_actor_transaction_t * const p_transaction = p_action->p_transaction;
+    const fg_actor_transaction_t * const p_transaction = p_task->p_transaction;
     ASSERT(p_transaction)
 
     if (p_transaction->has_run)
     {
-        // We push the finished action to an interruption-safe
+        // We push the finished task to an interrupt-safe
         // queue which will be handled from the main context.
-        APP_ERROR_CHECK(nrf_queue_push(&m_fg_actor_finished_action_queue, &p_action));
+        APP_ERROR_CHECK(nrf_queue_push(&m_fg_actor_finished_action_queue, &p_task));
     }
     else
     {
-        // This race condition occurs when the task's
-        // interrupt finished so quickly that the transaction
-        // that contains the action did not run yet. In this
-        // case the task will be pushed to the finished actions
+        // This condition occurs when the task's interrupt
+        // finished so quickly that the transaction that
+        // contains the action did not run yet. In this case
+        // the task will be pushed to the finished actions
         // queue when its corresponding transaction has been run,
         // see fg_actor_queue_task_if_irq_has_fired_iteratee().
-        NRFX_LOG_WARNING("task irq finished before transaction was run");
+        NRFX_LOG_DEBUG("Task irq finished before transaction was run.");
     }
 
-    // No need for a critical region here as we are called
-    // from interrupt context and the action corresponds
-    // exclusively to this IRQ handler.
-    ASSERT(!p_action->task.irq_has_fired)
-    p_action->task.irq_has_fired = true;
+    ASSERT(!p_task->task.irq_has_fired)
+    p_task->task.irq_has_fired = true;
 }
 
 static bool fg_actor_transaction_is_done_iteratee(fg_actor_action_t * const p_action, fg_actor_transaction_t * const p_transaction);
@@ -364,7 +368,8 @@ static bool fg_actor_transaction_is_done_iteratee(fg_actor_action_t * const p_ac
 
 static bool fg_actor_transaction_consolidate_errors_iteratee(fg_actor_action_t * const p_action, fg_actor_transaction_t * const p_transaction)
 {
-    return p_transaction->error_flags |= p_action->error_flags;
+    p_transaction->error_flags |= p_action->error_flags;
+    return true;
 }
 
 static bool fg_actor_transaction_free_deep_iteratee(fg_actor_action_t * const p_action, fg_actor_transaction_t * const p_transaction);

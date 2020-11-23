@@ -8,13 +8,10 @@ jdk:
 services:
   - docker
 
-before_install:
-  - chmod +x ./.travis/docker-build-and-push.sh
-
 script: cd ./core && mvn clean package
 
 after_success: 
-  - cd .. && bash ./.travis/docker-build-and-push.sh
+  - cd .. && .travis/docker-build-and-push.sh
 
 cache:
   directories:

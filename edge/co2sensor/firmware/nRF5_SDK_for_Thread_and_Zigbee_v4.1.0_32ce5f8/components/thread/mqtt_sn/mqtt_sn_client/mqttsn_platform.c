@@ -75,13 +75,14 @@ uint32_t mqttsn_platform_timer_start(mqttsn_client_t * p_client, uint32_t timeou
     {
         timeout_ticks = APP_TIMER_MIN_TIMEOUT_TICKS;
     }
-
     return app_timer_start(m_timer_id, timeout_ticks, p_client);
 }
 
 uint32_t mqttsn_platform_timer_stop()
 {
-    return app_timer_stop(m_timer_id);
+    if (m_timer_id->active)
+      return app_timer_stop(m_timer_id);
+    return NRF_SUCCESS;
 }
 
 uint32_t mqttsn_platform_timer_cnt_get()

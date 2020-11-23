@@ -41,6 +41,8 @@ static void fg_rtc_timeout_handler();
 
 static void fg_rtc_init(void)
 {
+    APP_ERROR_CHECK(app_timer_init());
+
     APP_ERROR_CHECK(
         app_timer_create(&m_fg_rtc_timer_id, APP_TIMER_MODE_SINGLE_SHOT, fg_rtc_timeout_handler));
 }

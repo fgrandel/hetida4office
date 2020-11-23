@@ -9,7 +9,7 @@
 // - Transactions can be scheduled from main or interrupt context but the corresponding action
 //   handlers will always be called from main context.
 // - Sending messages to actors or scheduling tasks returns right away, messages will be
-//   handled asynchronously.
+//   scheduled asynchronously.
 // - An actor must not share any memory with any other actor except for well-defined
 //   message-related resources. This will be enforced by the framework.
 // - Transaction result handlers will always be called from main context.
@@ -40,17 +40,21 @@ typedef enum
 } fg_actor_action_type_t;
 
 #define FG_ACTOR_TASK_CALLBACK_ARGS_DEC                                                            \
-    const fg_actor_action_t *const p_calling_action, fg_actor_action_t *const p_completed_action
-#define FG_ACTOR_TASK_CALLBACK_ARGS p_calling_action, p_completed_action
+    fg_actor_transaction_t *const p_next_transaction,                                              \
+        fg_actor_action_t *const p_calling_action,                                           \
+        fg_actor_action_t *const p_completed_action
+#define FG_ACTOR_TASK_CALLBACK_ARGS p_next_transaction, p_calling_action, p_completed_action
 typedef void (*fg_actor_task_callback_t)(FG_ACTOR_TASK_CALLBACK_ARGS_DEC);
 
 // Represents an actor-internal asynchronous (e.g. hardware) task
-// that will fire an event signaled via IRQ.
+// that will fire an event signaled via IRQ. Each task instance
+// within an actor must correspond to exactly one interrupt as two
+// instances of the same task cannot be scheduled concurrently.
 struct fg_actor_task
 {
     fg_actor_task_callback_t callback; // the event listener assigned to the task instance
-    volatile bool irq_has_fired; // set to true within ISR context - used for interrupt-safe
-                                 // synchronization with the main context
+    volatile bool irq_has_fired;       // set to true within ISR context - used for interrupt-safe
+                                       // synchronization with the main context
 };
 
 // Represents a message from main context or an actor
@@ -244,7 +248,8 @@ struct fg_actor
 
 #define FG_ACTOR_GET_SINGLETON_TASK() fg_actor_get_running_task(FG_ACTOR_DEFAULT_TASK_INSTANCE)
 
-#define FG_ACTOR_IS_SINGLETON_TASK_RUNNING() fg_actor_is_task_running(FG_ACTOR_DEFAULT_TASK_INSTANCE)
+#define FG_ACTOR_IS_SINGLETON_TASK_RUNNING()                                                       \
+    fg_actor_is_task_running(FG_ACTOR_DEFAULT_TASK_INSTANCE)
 
 #define FG_ACTOR_GET_FIRST_COMPLETED_ACTION() (p_completed_transaction->p_first_concurrent_action)
 
