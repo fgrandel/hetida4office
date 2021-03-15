@@ -71,7 +71,9 @@
  */
 static uint16_t next_packet_id_get(mqttsn_client_t * p_client)
 {
-    return (p_client->message_id == MQTTSN_MAX_PACKET_ID) ? 1 : (++(p_client->message_id));
+    uint16_t next_packet_id = (p_client->message_id == MQTTSN_MAX_PACKET_ID) ? 1 : (p_client->message_id + 1);
+    p_client->message_id = next_packet_id;
+    return next_packet_id;
 }
 
 /**@brief Sends MQTT-SN message.
