@@ -1,6 +1,0 @@
-language: minimal
-
-services:
-  - docker
-
-script: ./docker-build-and-push.sh

@@ -1,9 +1,0 @@
-FROM maven:3.6.3-jdk-11 as MAVEN_TOOL_CHAIN
-
-WORKDIR /build
-COPY core /build
-RUN mvn clean install -pl mqtt-kafka-common,mqtt-gateway-to-kafka,connector-mqtt
-
-FROM openjdk:11.0.6-jre
-COPY --from=MAVEN_TOOL_CHAIN /build/connector-mqtt/target/connector-mqtt*.jar /usr/app/app.jar
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/usr/app/app.jar"]
