@@ -12,13 +12,12 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import java.security.NoSuchAlgorithmException;
+import javax.net.ssl.*;
+import java.io.FileInputStream;
+import java.security.KeyStore;
 import java.util.Set;
 
 import static java.lang.String.format;
-import static java.rmi.server.RMISocketFactory.getSocketFactory;
 
 @Slf4j
 @Component
@@ -27,11 +26,34 @@ public class H4oMqttClient {
     private final String mqttBrokerUri;
     private final H4oMqttTopicsBuilder mqttTopicsBuilder;
     private final H4oRepository repository;
+    private final SSLContext sslContext;
 
     public H4oMqttClient(@Value("${h4o.mqtt.broker.host}") @NonNull final String mqttBrokerHost,
                          @Value("${h4o.mqtt.broker.port}") final int mqttBrokerPort,
+                         @Value("${h4o.mqtt.broker.key-store}") final String mqttBrokerKeyStore,
+                         @Value("${h4o.mqtt.broker.key-store-pw}") final String mqttBrokerKeyStorePw,
+                         @Value("${h4o.mqtt.broker.trust-store}") final String mqttBrokerTrustStore,
+                         @Value("${h4o.mqtt.broker.trust-store-pw}") final String mqttBrokerTrustStorePw,
                          @NonNull final H4oMqttTopicsBuilder mqttTopicsBuilder,
-                         @NonNull final H4oRepository repository) throws MqttException {
+                         @NonNull final H4oRepository repository) throws Exception {
+        // Authenticate the client to the broker.
+        final KeyStore keyStore = KeyStore.getInstance("pkcs12");
+        keyStore.load(new FileInputStream(mqttBrokerKeyStore), mqttBrokerKeyStorePw.toCharArray());
+        final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keyStore, mqttBrokerKeyStorePw.toCharArray());
+        final KeyManager[] keyManagers = keyManagerFactory.getKeyManagers();
+
+        // Authenticate the broker to the client.
+        final KeyStore trustStore = KeyStore.getInstance("jks");
+        trustStore.load(new FileInputStream(mqttBrokerTrustStore), mqttBrokerTrustStorePw.toCharArray());
+        final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(trustStore);
+        final TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+
+        final SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
+        sslContext.init(keyManagers, trustManagers, null);
+        this.sslContext = sslContext;
+
         final String clientId = "hetida4office-consumer";
         this.mqttBrokerUri = format("ssl://%s:%d", mqttBrokerHost, mqttBrokerPort);
         final MemoryPersistence persistence = new MemoryPersistence();
@@ -40,7 +62,7 @@ public class H4oMqttClient {
         this.repository = repository;
     }
 
-    private void connect() throws MqttException, NoSuchAlgorithmException {
+    private void connect() throws Exception {
         if (this.mqttClient.isConnected()) {
             log.info("Client was already connected...");
             return;
@@ -48,13 +70,12 @@ public class H4oMqttClient {
         log.info("Connecting to mqtt client at {}...", this.mqttBrokerUri);
         final MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setAutomaticReconnect(true);
-        SSLSocketFactory socketFactory = SSLContext.getDefault().getSocketFactory();
-        connOpts.setSocketFactory(socketFactory);
+        connOpts.setSocketFactory(this.sslContext.getSocketFactory());
         this.mqttClient.connect(connOpts);
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    public void startListening() throws MqttException, NoSuchAlgorithmException {
+    public void startListening() throws Exception {
         this.connect();
         this.mqttClient.setCallback(new H4oMqttCallback());
         final Set<String> topics = this.mqttTopicsBuilder.getTopics();
@@ -68,7 +89,7 @@ public class H4oMqttClient {
         }
 
         @Override
-        public void messageArrived(final String topic, final MqttMessage message) throws Exception {
+        public void messageArrived(final String topic, final MqttMessage message) {
             if (message.isDuplicate()) {
                 return;
             }
