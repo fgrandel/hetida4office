@@ -48,6 +48,8 @@ static fg_mqttsn_message_t m_mqttsn_message[FG_MQTT_TOPIC_NUM] = {
 
 /** Main loop */
 
+// TODO: implement OTA updates.
+// TODO: implement formal hierarchical state machine
 // TODO: connect gpio pin to sleep state and check whether the device is sleeping as intended.
 // TODO: Make sure EN_BLK_REVERSE is Hi-Z during reset to make sure that VCAP will not
 //       (reverse) aliment 3V3. Hide VCAP behind MOSFET.
