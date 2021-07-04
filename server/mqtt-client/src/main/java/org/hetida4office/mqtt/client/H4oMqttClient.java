@@ -5,8 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.hetida4office.mqtt.db.H4oRepository;
+import org.hetida4office.mqtt.entity.H4oEvent;
 import org.hetida4office.mqtt.entity.H4oMeasurement;
 import org.hetida4office.mqtt.entity.H4oMeasurementType;
+import org.hetida4office.mqtt.entity.H4oMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -89,14 +91,22 @@ public class H4oMqttClient {
         }
 
         @Override
-        public void messageArrived(final String topic, final MqttMessage message) {
-            if (message.isDuplicate()) {
+        public void messageArrived(final String mqttTopic, final MqttMessage mqttMessage) {
+            if (mqttMessage.isDuplicate()) {
                 return;
             }
-            final H4oMeasurement measurement = H4oMeasurementType.convertAndScale(topic, message);
-            H4oMqttClient.this.repository.storeMeasurement(measurement);
-            log.debug("Added Measurement: channelId {}, timestamp {}, measurement {}",
-                    measurement.getChannelId(), measurement.getTimestamp(), measurement.getMeasurement());
+            final H4oEvent h4oEvent = H4oMeasurementType.convert(mqttTopic, mqttMessage);
+            if (h4oEvent instanceof H4oMeasurement) {
+                final H4oMeasurement h4oMeasurement = (H4oMeasurement) h4oEvent;
+                H4oMqttClient.this.repository.storeMeasurement(h4oMeasurement);
+                log.debug("Added Measurement: channelId {}, timestamp {}, measurement {}",
+                        h4oMeasurement.getChannelId(), h4oMeasurement.getTimestamp(), h4oMeasurement.getMeasurement());
+            } else {
+                final H4oMessage h4oMessage = (H4oMessage) h4oEvent;
+                H4oMqttClient.this.repository.storeMessage(h4oMessage);
+                log.debug("Added Message: channelId {}, timestamp {}, message {}",
+                        h4oMessage.getChannelId(), h4oMessage.getTimestamp(), h4oMessage.getMessage());
+            }
         }
 
         @Override
