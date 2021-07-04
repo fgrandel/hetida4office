@@ -52,7 +52,7 @@ static bool m_i2c_enabled;
 
 /** BME280 resources */
 // Allocate buffers and data structures to collect pending transactions.
-#define BME280_DEVICE_ADDRESS 0x77 // maybe 0x76 depending on hardware setup
+#define BME280_DEVICE_ADDRESS BME280_I2C_ADDR_SEC // 0x77 (secondary) - maybe 0x76 (primary) depending on hardware setup
 #define BME280_ADDRESS_SIZE sizeof(uint8_t)
 #define BME280_REGISTER_SIZE sizeof(uint8_t) // size of a single BME280 register
 
