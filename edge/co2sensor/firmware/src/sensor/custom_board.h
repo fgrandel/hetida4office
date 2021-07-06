@@ -4,6 +4,9 @@
 #include "nrf_gpio.h"
 #include "pins.h"
 
+#define FG_MQTT_SENSOR_NAME s6
+// #define FG_WITH_CO2_SENSOR
+
 #define LEDS_NUMBER    2
 
 #define LED_1          PIN_LED1

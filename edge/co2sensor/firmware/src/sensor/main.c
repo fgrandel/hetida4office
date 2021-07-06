@@ -1,5 +1,8 @@
+#include "custom_board.h"
 #include "bme280/fg_bme280_actor.h"
+#ifdef FG_WITH_CO2_SENSOR
 #include "lp8/fg_lp8_actor.h"
+#endif
 #include "mqttsn/fg_mqttsn_actor.h"
 #include "rtc/fg_rtc_actor.h"
 #include "saadc/fg_saadc_actor.h"
@@ -11,15 +14,26 @@
 #include <stdlib.h>
 #include <thread_utils.h>
 
+#ifndef FG_WITH_CO2_SENSOR
+#define FG_IDLE_TIME_S 60
+#endif
 
-FG_ACTOR_RESULT_HANDLERS_DEC(init_or_wakeup_result_handler, pressure_measurement_result_handler,
-    co2_measurement_result_handler, mqttsn_sleep_handler);
+FG_ACTOR_RESULT_HANDLERS_DEC(
+    init_or_wakeup_result_handler,
+    pressure_measurement_result_handler,
+    #ifdef FG_WITH_CO2_SENSOR
+    co2_measurement_result_handler,
+    #endif
+    mqttsn_sleep_handler
+);
 
 /** BME280 child actor resources */
 static const fg_actor_t * m_p_bme280_actor;
 
+#ifdef FG_WITH_CO2_SENSOR
 /** LP8 child actor resources */
 static const fg_actor_t * m_p_lp8_actor;
+#endif
 
 /** RTC child actor resources */
 static const fg_actor_t * m_p_rtc_actor;
@@ -40,7 +54,9 @@ static fg_mqttsn_message_t m_mqttsn_message[FG_MQTT_TOPIC_NUM] = {
     {.topic_id = FG_MQTT_TOPIC_PRESSURE, .p_data = m_mqttsn_message_buffer[FG_MQTT_TOPIC_PRESSURE]},
     {.topic_id = FG_MQTT_TOPIC_TEMPERATURE, .p_data = m_mqttsn_message_buffer[FG_MQTT_TOPIC_TEMPERATURE]},
     {.topic_id = FG_MQTT_TOPIC_HUMIDITY, .p_data = m_mqttsn_message_buffer[FG_MQTT_TOPIC_HUMIDITY]},
+    #ifdef FG_WITH_CO2_SENSOR
     {.topic_id = FG_MQTT_TOPIC_CO2, .p_data = m_mqttsn_message_buffer[FG_MQTT_TOPIC_CO2]},
+    #endif
     {.topic_id = FG_MQTT_TOPIC_BAT, .p_data = m_mqttsn_message_buffer[FG_MQTT_TOPIC_BAT]},
     {.topic_id = FG_MQTT_TOPIC_STATUS, .p_data = m_mqttsn_message_buffer[FG_MQTT_TOPIC_STATUS]},
 };
@@ -69,7 +85,9 @@ int main(void)
                                          // any other actor requiring RTC service.
     m_p_mqttsn_actor = fg_mqttsn_actor_init();
     m_p_bme280_actor = fg_bme280_actor_init();
+#ifdef FG_WITH_CO2_SENSOR
     m_p_lp8_actor = fg_lp8_actor_init();
+#endif
     m_p_saadc_actor = fg_saadc_actor_init();
 
     fg_actor_transaction_t * const p_init_transaction =
@@ -168,9 +186,6 @@ static void publish_measurement(
 
 FG_ACTOR_RESULT_HANDLER(pressure_measurement_result_handler)
 {
-    static uint16_t pressure;
-    static fg_lp8_measurement_t lp8_measurement;
-
     const fg_actor_action_t * p_completed_action = FG_ACTOR_GET_FIRST_COMPLETED_ACTION();
     CHECK_COMPLETED_ACTION(p_completed_action, "BME280 measurement error!");
 
@@ -182,12 +197,17 @@ FG_ACTOR_RESULT_HANDLER(pressure_measurement_result_handler)
         p_measurement_result->pressure, p_measurement_result->temperature,
         p_measurement_result->humidity);
 
+#ifdef FG_WITH_CO2_SENSOR
+    static uint16_t pressure;
+    static fg_lp8_measurement_t lp8_measurement;
+
     // BME280 returns pressure in units of 1/100Pa, LP8 expects units of 10Pa = 0.1hPa
     fg_actor_action_t * const p_next_action = FG_ACTOR_POST_MESSAGE(lp8, FG_LP8_MEASURE);
     pressure = p_measurement_result->pressure / 1000;
     FG_ACTOR_SET_ARGS(p_next_action, pressure);
 
     FG_ACTOR_SET_P_RESULT(p_next_action, fg_lp8_measurement_t, &lp8_measurement);
+#endif
 
     publish_measurement(
         p_next_transaction, p_measurement_result->temperature, FG_MQTT_TOPIC_TEMPERATURE);
@@ -205,9 +225,14 @@ FG_ACTOR_RESULT_HANDLER(pressure_measurement_result_handler)
         publish_measurement(p_next_transaction, *p_saadc_result, FG_MQTT_TOPIC_BAT);
     }
 
+#ifdef FG_WITH_CO2_SENSOR
     FG_ACTOR_SET_TRANSACTION_RESULT_HANDLER(co2_measurement_result_handler);
+#else
+    FG_ACTOR_SET_TRANSACTION_RESULT_HANDLER(mqttsn_sleep_handler);
+#endif
 }
 
+#ifdef FG_WITH_CO2_SENSOR
 FG_ACTOR_RESULT_HANDLER(co2_measurement_result_handler)
 {
     const fg_actor_action_t * const p_completed_action = FG_ACTOR_GET_FIRST_COMPLETED_ACTION();
@@ -234,6 +259,16 @@ FG_ACTOR_RESULT_HANDLER(co2_measurement_result_handler)
 
     FG_ACTOR_SET_TRANSACTION_RESULT_HANDLER(mqttsn_sleep_handler);
 }
+#endif
+
+uint8_t fg_get_idle_time()
+{
+#ifdef FG_WITH_CO2_SENSOR
+    return fg_lp8_get_idle_time();
+#else
+    return FG_IDLE_TIME_S;
+#endif
+}
 
 FG_ACTOR_RESULT_HANDLER(mqttsn_sleep_handler)
 {
@@ -244,7 +279,7 @@ FG_ACTOR_RESULT_HANDLER(mqttsn_sleep_handler)
 
     // Set timer for next measurement.
     p_next_action = FG_ACTOR_POST_MESSAGE(rtc, FG_RTC_START_TIMER);
-    m_main_idle_time_ms = fg_lp8_get_idle_time() * 1000;
+    m_main_idle_time_ms = fg_get_idle_time() * 1000;
     FG_ACTOR_SET_ARGS(p_next_action, m_main_idle_time_ms);
 
     // Put MQTTSN client to sleep (i.e. thread reduce poll period and save energy).

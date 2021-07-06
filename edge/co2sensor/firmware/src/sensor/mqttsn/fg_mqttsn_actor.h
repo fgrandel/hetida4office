@@ -2,8 +2,7 @@
 #define FG_MQTTSN_ACTOR_H
 
 #include "actor/fg_actor.h"
-
-#define FG_MQTT_SENSOR_NAME s1
+#include "custom_board.h"
 
 typedef enum
 {
@@ -18,7 +17,9 @@ typedef enum
     FG_MQTT_TOPIC_PRESSURE,
     FG_MQTT_TOPIC_TEMPERATURE,
     FG_MQTT_TOPIC_HUMIDITY,
+#ifdef FG_WITH_CO2_SENSOR
     FG_MQTT_TOPIC_CO2,
+#endif
     FG_MQTT_TOPIC_BAT,
     FG_MQTT_TOPIC_STATUS,
     FG_MQTT_TOPIC_NUM
